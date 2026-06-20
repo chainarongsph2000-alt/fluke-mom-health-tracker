@@ -248,6 +248,32 @@ body {
 .footer p { font-size: 11px; color: #555568; }
 
 /* ===== OPTION CARD ===== */
+/* ===== FINANCIAL GRID (Hybrid) ===== */
+.finance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.finance-item {
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.finance-item.grand {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,165,0,0.08));
+  border: 1px solid rgba(255,215,0,0.2);
+}
+.fi-icon { font-size: 20px; margin-bottom: 2px; }
+.fi-label { font-size: 10px; color: #8888a0; margin-bottom: 4px; }
+.fi-value { font-size: 20px; font-weight: 700; color: #fff; }
+.fi-value.gold { color: #ffd700; }
+.fi-value.green { color: #4ade80; }
+.fi-value.grand-value { font-size: 26px; color: #ffd700; }
+.fi-unit { font-size: 10px; color: #555568; }
+
 .option-badge {
   display: inline-block;
   padding: 4px 12px;
