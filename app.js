@@ -143,19 +143,27 @@ function renderAchievements() {
 // ===== Actions =====
 function handleCheckin() {
   if (tg) {
-    tg.sendData(JSON.stringify({ action: 'checkin' }));
-    showToast('✅ ส่ง check-in แล้ว!');
+    tg.HapticFeedback.impactOccurred('medium');
+    showToast('✅ กำลังเปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
+    setTimeout(() => {
+      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
+      tg.close();
+    }, 800);
   } else {
-    showToast('🔗 ใช้ใน Telegram เพื่อ check-in');
+    showToast('🔗 เปิด Telegram พิมพ์ "ไม่กิน" ให้ bot');
   }
 }
 
 function handleFail() {
   if (tg) {
-    tg.sendData(JSON.stringify({ action: 'fail' }));
-    showToast('📝 ส่งข้อมูลแล้ว');
+    tg.HapticFeedback.impactOccurred('medium');
+    showToast('📝 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
+    setTimeout(() => {
+      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
+      tg.close();
+    }, 800);
   } else {
-    showToast('🔗 ใช้ใน Telegram เพื่อบันทึก');
+    showToast('🔗 เปิด Telegram พิมพ์ "กินแล้ว" ให้ bot');
   }
 }
 
