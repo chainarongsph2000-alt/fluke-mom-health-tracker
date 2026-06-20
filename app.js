@@ -142,29 +142,73 @@ function renderAchievements() {
 
 // ===== Actions =====
 function handleCheckin() {
-  if (tg) {
+  const apiUrl = getApiUrl();
+  if (apiUrl && tg) {
     tg.HapticFeedback.impactOccurred('medium');
-    showToast('✅ กำลังเปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
-    setTimeout(() => {
-      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
-      tg.close();
-    }, 800);
+    showToast('⏳ กำลังบันทึก...');
+    
+    fetch(apiUrl + '/api/checkin', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secret: 'mom'})
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        showToast('✅ บันทึกแล้ว! Streak ' + d.streak + ' วัน 💰 ' + d.grand_total + ' บาท');
+        setTimeout(() => tg.close(), 1200);
+      } else {
+        showToast('❌ Error: ' + (d.error || 'ไม่รู้'));
+      }
+    })
+    .catch(() => {
+      // Fallback: เปิด deep link
+      showToast('📱 เปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
+      setTimeout(() => {
+        tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
+        tg.close();
+      }, 800);
+    });
   } else {
-    showToast('🔗 เปิด Telegram พิมพ์ "ไม่กิน" ให้ bot');
+    showToast('🔗 เปิดใน Telegram เพื่อ Check-in');
   }
 }
 
 function handleFail() {
-  if (tg) {
+  const apiUrl = getApiUrl();
+  if (apiUrl && tg) {
     tg.HapticFeedback.impactOccurred('medium');
-    showToast('📝 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
-    setTimeout(() => {
-      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
-      tg.close();
-    }, 800);
+    showToast('⏳ กำลังบันทึก...');
+    
+    fetch(apiUrl + '/api/fail', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secret: 'mom'})
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        showToast('📝 บันทึกแล้ว — เสาร์หน้าก็เริ่มใหม่! 💪');
+        setTimeout(() => tg.close(), 1200);
+      } else {
+        showToast('❌ Error: ' + (d.error || 'ไม่รู้'));
+      }
+    })
+    .catch(() => {
+      showToast('📱 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
+      setTimeout(() => {
+        tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
+        tg.close();
+      }, 800);
+    });
   } else {
-    showToast('🔗 เปิด Telegram พิมพ์ "กินแล้ว" ให้ bot');
+    showToast('🔗 เปิดใน Telegram');
   }
+}
+
+function getApiUrl() {
+  const p = new URLSearchParams(window.location.search);
+  return p.get('api_url') || null;
 }
 
 // ===== History Modal =====
