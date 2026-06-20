@@ -203,55 +203,25 @@ function renderAchievements() {
 }
 
 // ===== Actions =====
-async function handleCheckin() {
-  if (tg) tg.HapticFeedback.impactOccurred('medium');
-  showToast('⏳ กำลังบันทึก...');
-
-  const apiResult = await checkinViaApi();
-  if (apiResult) {
-    // Update state from API response
-    data.streak = apiResult.streak;
-    data.maxStreak = apiResult.max_streak;
-    data.points = apiResult.points;
-    data.totalDays = apiResult.total_days;
-    data.money = apiResult.grand_total;
-    data.bonus = apiResult.total_money;
-    data.match = apiResult.fund_match;
-    data.weekly = apiResult.weekly_bonus;
-    data.challenge = apiResult.challenge_money;
-    render();
-    showToast(`✅ บันทึกแล้ว! Streak ${apiResult.streak} วัน 💰 ${apiResult.grand_total.toLocaleString()} บาท`);
-    setTimeout(() => tg.close(), 1500);
-  } else {
-    // Fallback: deep link
-    showToast('📱 เปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
-    if (tg) {
-      setTimeout(() => {
-        tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
-        tg.close();
-      }, 800);
-    }
+function handleCheckin() {
+  if (tg) {
+    tg.HapticFeedback.impactOccurred('medium');
+    showToast('📱 กำลังเปิดแชท — กดส่ง "ไม่กิน" เดี๋ยวเดียว!');
+    setTimeout(() => {
+      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
+      tg.close();
+    }, 600);
   }
 }
 
-async function handleFail() {
-  if (tg) tg.HapticFeedback.impactOccurred('medium');
-  showToast('⏳ กำลังบันทึก...');
-
-  const apiResult = await failViaApi();
-  if (apiResult) {
-    data.streak = 0;
-    render();
-    showToast('📝 บันทึกแล้ว — เสาร์หน้าก็เริ่มใหม่! 💪');
-    setTimeout(() => tg.close(), 1500);
-  } else {
-    showToast('📱 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
-    if (tg) {
-      setTimeout(() => {
-        tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
-        tg.close();
-      }, 800);
-    }
+function handleFail() {
+  if (tg) {
+    tg.HapticFeedback.impactOccurred('medium');
+    showToast('📱 กำลังเปิดแชท — พิมพ์ "กินแล้ว" ส่งเลย!');
+    setTimeout(() => {
+      tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
+      tg.close();
+    }, 600);
   }
 }
 
