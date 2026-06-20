@@ -6,10 +6,11 @@ try {
   tg.expand();
 } catch(e) {}
 
-// ===== Parse URL Params =====
-function getData() {
+// ===== Parse URL Params (fallback when API unavailable) =====
+function getUrlData() {
   const p = new URLSearchParams(window.location.search);
   return {
+    api_url: p.get('api_url') || null,
     streak: parseInt(p.get('streak') || '0'),
     maxStreak: parseInt(p.get('max_streak') || '0'),
     points: parseInt(p.get('points') || '0'),
@@ -26,7 +27,68 @@ function getData() {
   };
 }
 
-let data = getData();
+// ===== API =====
+let API_URL = null;
+function getApiUrl() { if (!API_URL) API_URL = getUrlData().api_url; return API_URL; }
+
+async function fetchFreshData() {
+  const url = getApiUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url + '/api/status', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secret: 'mom'})
+    });
+    const d = await res.json();
+    return d.ok ? d : null;
+  } catch(e) { return null; }
+}
+
+async function checkinViaApi() {
+  const url = getApiUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url + '/api/checkin', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secret: 'mom'})
+    });
+    const d = await res.json();
+    return d.ok ? d : null;
+  } catch(e) { return null; }
+}
+
+async function failViaApi() {
+  const url = getApiUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url + '/api/fail', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({secret: 'mom'})
+    });
+    const d = await res.json();
+    return d.ok ? d : null;
+  } catch(e) { return null; }
+}
+
+// ===== State =====
+let data = getUrlData();
+
+// On load: fetch fresh data from API
+(async function() {
+  const fresh = await fetchFreshData();
+  if (fresh) {
+    data.streak = fresh.streak;
+    data.maxStreak = fresh.max_streak;
+    data.points = fresh.points;
+    data.totalDays = fresh.total_days;
+    data.money = fresh.grand_total;
+    data.bonus = fresh.total_money;
+    data.match = fresh.fund_match;
+    data.weekly = fresh.weekly_bonus;
+    data.challenge = fresh.challenge_money;
+    render();
+  }
+})();
 
 // ===== Render =====
 function render() {
@@ -141,74 +203,56 @@ function renderAchievements() {
 }
 
 // ===== Actions =====
-function handleCheckin() {
-  const apiUrl = getApiUrl();
-  if (apiUrl && tg) {
-    tg.HapticFeedback.impactOccurred('medium');
-    showToast('⏳ กำลังบันทึก...');
-    
-    fetch(apiUrl + '/api/checkin', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({secret: 'mom'})
-    })
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok) {
-        showToast('✅ บันทึกแล้ว! Streak ' + d.streak + ' วัน 💰 ' + d.grand_total + ' บาท');
-        setTimeout(() => tg.close(), 1200);
-      } else {
-        showToast('❌ Error: ' + (d.error || 'ไม่รู้'));
-      }
-    })
-    .catch(() => {
-      // Fallback: เปิด deep link
-      showToast('📱 เปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
+async function handleCheckin() {
+  if (tg) tg.HapticFeedback.impactOccurred('medium');
+  showToast('⏳ กำลังบันทึก...');
+
+  const apiResult = await checkinViaApi();
+  if (apiResult) {
+    // Update state from API response
+    data.streak = apiResult.streak;
+    data.maxStreak = apiResult.max_streak;
+    data.points = apiResult.points;
+    data.totalDays = apiResult.total_days;
+    data.money = apiResult.grand_total;
+    data.bonus = apiResult.total_money;
+    data.match = apiResult.fund_match;
+    data.weekly = apiResult.weekly_bonus;
+    data.challenge = apiResult.challenge_money;
+    render();
+    showToast(`✅ บันทึกแล้ว! Streak ${apiResult.streak} วัน 💰 ${apiResult.grand_total.toLocaleString()} บาท`);
+    setTimeout(() => tg.close(), 1500);
+  } else {
+    // Fallback: deep link
+    showToast('📱 เปิดแชท — พิมพ์ "ไม่กิน" แล้วส่ง!');
+    if (tg) {
       setTimeout(() => {
         tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=ไม่กิน');
         tg.close();
       }, 800);
-    });
-  } else {
-    showToast('🔗 เปิดใน Telegram เพื่อ Check-in');
+    }
   }
 }
 
-function handleFail() {
-  const apiUrl = getApiUrl();
-  if (apiUrl && tg) {
-    tg.HapticFeedback.impactOccurred('medium');
-    showToast('⏳ กำลังบันทึก...');
-    
-    fetch(apiUrl + '/api/fail', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({secret: 'mom'})
-    })
-    .then(r => r.json())
-    .then(d => {
-      if (d.ok) {
-        showToast('📝 บันทึกแล้ว — เสาร์หน้าก็เริ่มใหม่! 💪');
-        setTimeout(() => tg.close(), 1200);
-      } else {
-        showToast('❌ Error: ' + (d.error || 'ไม่รู้'));
-      }
-    })
-    .catch(() => {
-      showToast('📱 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
+async function handleFail() {
+  if (tg) tg.HapticFeedback.impactOccurred('medium');
+  showToast('⏳ กำลังบันทึก...');
+
+  const apiResult = await failViaApi();
+  if (apiResult) {
+    data.streak = 0;
+    render();
+    showToast('📝 บันทึกแล้ว — เสาร์หน้าก็เริ่มใหม่! 💪');
+    setTimeout(() => tg.close(), 1500);
+  } else {
+    showToast('📱 เปิดแชท — พิมพ์ "กินแล้ว" แล้วส่ง!');
+    if (tg) {
       setTimeout(() => {
         tg.openTelegramLink('https://t.me/SUPPER_V2_BOT?text=กินแล้ว');
         tg.close();
       }, 800);
-    });
-  } else {
-    showToast('🔗 เปิดใน Telegram');
+    }
   }
-}
-
-function getApiUrl() {
-  const p = new URLSearchParams(window.location.search);
-  return p.get('api_url') || null;
 }
 
 // ===== History Modal =====
@@ -263,7 +307,6 @@ function showToast(msg) {
 }
 
 // ===== Init =====
-render();
 if (tg) {
   tg.BackButton.onClick(() => tg.close());
 }
