@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🏆 ทีมสุขภาพดีแม่อุ๋ม</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-bg"></div>
+      <div class="header-content">
+        <h1>🏆 ทีมสุขภาพดีแม่อุ๋ม</h1>
+        <p class="subtitle">แพลนบันทึกแต้ม หยุดเบียร์</p>
+      </div>
+    </header>
+
+    <!-- Main Stats Card -->
+    <section class="stats-card" id="statsCard">
+      <div class="stat-row streak-row">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-info">
+          <span class="stat-label">Streak ปัจจุบัน</span>
+          <span class="stat-value" id="streakValue">0</span>
+          <span class="stat-unit">วันติด</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat-row">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-info">
+          <span class="stat-label">แต้มรวม</span>
+          <span class="stat-value" id="pointsValue">0</span>
+          <span class="stat-unit">แต้ม</span>
+        </div>
+        <div class="stat-bonus">
+          <span class="money-value" id="moneyValue">0</span>
+          <span class="money-unit">บาท</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat-row">
+        <div class="stat-icon">📅</div>
+        <div class="stat-info">
+          <span class="stat-label">วันที่ทำได้</span>
+          <span class="stat-value" id="totalDays">0</span>
+          <span class="stat-unit">วัน</span>
+        </div>
+        <div class="stat-bonus">
+          <span class="max-streak">🔥 สูงสุด <span id="maxStreak">0</span> วัน</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Card -->
+    <section class="card" id="progressCard">
+      <h2 class="card-title">🎯 ความคืบหน้า</h2>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+      </div>
+      <p class="progress-text" id="progressText">🎁 อีก 5 แต้ม → 🍦 ไอศกรีม/ขนมตามใจ</p>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <button class="action-btn primary" id="btnCheckin" onclick="handleCheckin()">
+        <span>✅</span> Check-in วันนี้
+      </button>
+      <div class="action-row">
+        <button class="action-btn secondary" onclick="handleFail()">
+          <span>❌</span> กินแล้ว
+        </button>
+        <button class="action-btn secondary" onclick="showHistory()">
+          <span>📅</span> ประวัติ
+        </button>
+      </div>
+    </section>
+
+    <!-- Rewards section -->
+    <section class="card" id="rewardsCard">
+      <h2 class="card-title">🎁 รางวัล</h2>
+      <div class="reward-list" id="rewardList">
+        <div class="reward-item locked">🍦 ไอศกรีม/ขนม — 5 แต้ม</div>
+        <div class="reward-item locked">🥩 บุฟเฟ่ต์เนื้อ — 10 แต้ม</div>
+        <div class="reward-item locked">🏞️ เที่ยว 1 วัน — 20 แต้ม</div>
+        <div class="reward-item locked">🌊 ทริปทะเล — 30 แต้ม</div>
+        <div class="reward-item locked">✈️ ตั๋วเครื่องบิน — 40 แต้ม</div>
+      </div>
+    </section>
+
+    <!-- Achievements -->
+    <section class="card" id="achievementsCard">
+      <h2 class="card-title">🏅 ความสำเร็จ</h2>
+      <div class="achievement-grid" id="achievementGrid">
+        <div class="achievement locked">
+          <div class="ach-icon">🌟</div>
+          <div class="ach-name">First Star</div>
+        </div>
+        <div class="achievement locked">
+          <div class="ach-icon">🔥</div>
+          <div class="ach-name">7-Day Streak</div>
+        </div>
+        <div class="achievement locked">
+          <div class="ach-icon">💎</div>
+          <div class="ach-name">30-Day</div>
+        </div>
+        <div class="achievement locked">
+          <div class="ach-icon">🏆</div>
+          <div class="ach-name">90-Day</div>
+        </div>
+        <div class="achievement locked">
+          <div class="ach-icon">👑</div>
+          <div class="ach-name">1 Year</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>📅 ประวัติ</h3>
+          <button class="close-btn" onclick="closeHistory()">✕</button>
+        </div>
+        <div class="modal-body" id="historyBody">
+          <p class="loading-text">ยังไม่มีประวัติ check-in</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>🤖 จัดการโดย ซุปเปอร์ 🫡</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
